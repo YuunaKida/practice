@@ -4,4 +4,15 @@
     <%= link_to '編集', edit_board_path, class: 'btn btn-outline-dark'%>
   </div>
 </div>
+<% if flash[:notice] %>
+  <div class="alert alert-primary"><%= flash[:notice] %></div>
+<% end %>
 <%= render @board %>
+
+<div class="p-comment__list">
+  <div class="p-comment_listTitle">コメント</div>
+  <!--　app/views/comments/_comment.html.erbが掲示板に紐づいたコメントの数だけ自動的にレンダリングされる -->
+  <%= render @board.comments%>
+</div>
+
+<%= render partial: 'comments/form', locals: { comment: @comment } %>

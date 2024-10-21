@@ -1,7 +1,9 @@
 class BoardsController < ApplicationController
-    before_action :set_board, only: [:destroy]
+    before_action :set_target_board, only: %i[ show edit update destroy]
+
     def index
-        @boards = Board.all
+        @boards = params[:tag_id].present? ? Tag.find(params[:tag_id]).boards : Board.all
+        @boards = @boards.page(params[:page])
     end
 
     def new
@@ -9,31 +11,36 @@ class BoardsController < ApplicationController
     end
     
     def create
-        board = Board.create(board_params)
-        redirect_to board
+        @board = Board.new(board_params)
+        if @board.save
+            flash[:notice] = "「#{@board.title}」の掲示板を作成しました"
+            redirect_to @board
+        else
+            flash.now[:error_messages] = @board.errors.full_messages
+            render :new, status: :unprocessable_entity
+        end
     end
 
     def show
-        @board = Board.find(params[:id])
+        @comment = Comment.new(board_id: @board.id)
     end
 
     def edit
-        @board = Board.find(params[:id])
     end
 
     def update
-        board = Board.find(params[:id])
-        board.update(board_params)
-
-        redirect_to board
+        if @board.update(board_params)
+            redirect_to @board
+        else
+            flash.now[:error_messages] = @board.errors.full_messages
+            render :edit, status: :unprocessable_entity
+        end
     end
 
     def destroy
-        binding.pry
-        @board = Board.find(params[:id])
         @board.destroy
         respond_to do |format|
-          format.html { redirect_to boards_path, notice: '削除が完了しました', status: :see_other }
+          format.html { redirect_to boards_path, notice: "「#{@board.title}」削除が完了しました", status: :see_other }
           format.json { head :no_content }
         end
     end
@@ -41,10 +48,14 @@ class BoardsController < ApplicationController
     private
 
     def board_params
-            params.require(:board).permit(:author_name, :title, :body )
+        params.require(:board).permit(:author_name, :title, :body, tag_ids: [] )
     end
 
-    def set_board
+    def set_target_board
         @board = Board.find(params[:id])
+    end
+
+    def comment_params
+        params.require(:comment).permit(:content)
     end
 end

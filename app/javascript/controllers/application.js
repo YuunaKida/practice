@@ -1,8 +1,8 @@
 import { Application } from "@hotwired/stimulus"
-import "@popperjs/core"
 import "@hotwired/turbo-rails"
-import "controllers"
+import "@popperjs/core"
 import "bootstrap"
+import "controllers"
 
 
 const application = Application.start()
